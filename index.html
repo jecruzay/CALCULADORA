@@ -5,15 +5,31 @@
   <title>Graficador de Ecuaciones</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-    input { margin: 5px; }
-    canvas { max-width: 700px; margin: auto; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #f2f2f2;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    canvas {
+      max-width: 700px;
+      margin: 30px auto;
+    }
+    #soluciones {
+      font-weight: bold;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
   <h2>Resolver y graficar ecuaciones</h2>
 
-  <p><strong>Ingresa los coeficientes:</strong></p>
+  <p><strong>Selecciona el tipo de ecuación y completa los coeficientes:</strong></p>
 
   <div>
     <label>Tipo de ecuación:</label>
@@ -41,10 +57,13 @@
   <canvas id="grafico"></canvas>
 
   <script>
+    let chart; // para almacenar la instancia de la gráfica
+
     const cambiarTipo = () => {
       const tipo = document.getElementById('tipoEcuacion').value;
       document.getElementById('inputsLineal').style.display = tipo === 'lineal' ? 'block' : 'none';
       document.getElementById('inputsCuadratica').style.display = tipo === 'cuadratica' ? 'block' : 'none';
+      document.getElementById('soluciones').textContent = '';
     };
 
     const graficar = () => {
@@ -57,17 +76,28 @@
       if (tipo === 'lineal') {
         const m = parseFloat(document.getElementById('m').value);
         const b = parseFloat(document.getElementById('b').value);
+
+        if (isNaN(m) || isNaN(b)) {
+          alert("Por favor, ingresa todos los coeficientes.");
+          return;
+        }
+
         yValues = xValues.map(x => m * x + b);
         const xSol = -b / m;
-        solucionTexto = `Raíz (cuando y=0): x = ${xSol.toFixed(2)}`;
-        minY = Math.min(...yValues);
-        maxY = Math.max(...yValues);
+        solucionTexto = m !== 0 ? `Raíz (cuando y = 0): x = ${xSol.toFixed(2)}` : "La recta es horizontal, no tiene raíz.";
       } else {
         const a = parseFloat(document.getElementById('a').value);
         const b = parseFloat(document.getElementById('b2').value);
         const c = parseFloat(document.getElementById('c').value);
+
+        if (isNaN(a) || isNaN(b) || isNaN(c)) {
+          alert("Por favor, ingresa todos los coeficientes.");
+          return;
+        }
+
         yValues = xValues.map(x => a * x * x + b * x + c);
         const discriminante = b * b - 4 * a * c;
+
         if (discriminante > 0) {
           const x1 = (-b + Math.sqrt(discriminante)) / (2 * a);
           const x2 = (-b - Math.sqrt(discriminante)) / (2 * a);
@@ -76,15 +106,20 @@
           const x0 = -b / (2 * a);
           solucionTexto = `Raíz doble: x = ${x0.toFixed(2)}`;
         } else {
-          solucionTexto = "No hay raíces reales.";
+          solucionTexto = "No hay raíces reales (discriminante < 0)";
         }
-        minY = Math.min(...yValues);
-        maxY = Math.max(...yValues);
       }
+
+      minY = Math.min(...yValues);
+      maxY = Math.max(...yValues);
 
       document.getElementById('soluciones').textContent = `${solucionTexto} | Dominio: [-20, 20] | Rango aprox.: [${minY.toFixed(2)}, ${maxY.toFixed(2)}]`;
 
-      new Chart(document.getElementById('grafico'), {
+      // Eliminar gráfico anterior
+      if (chart) chart.destroy();
+
+      const ctx = document.getElementById('grafico').getContext('2d');
+      chart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: xValues,
@@ -92,8 +127,9 @@
             label: 'f(x)',
             data: yValues,
             borderColor: 'blue',
-            fill: false,
-            tension: 0.1
+            backgroundColor: 'rgba(0, 0, 255, 0.1)',
+            fill: true,
+            tension: 0.2
           }]
         },
         options: {
