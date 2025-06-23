@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Graficador de Ecuaciones</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -9,42 +10,67 @@
       font-family: Arial, sans-serif;
       text-align: center;
       padding: 20px;
-      background-color: #f2f2f2;
+      background-color: #f9f9f9;
     }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
     input, select, button {
       padding: 8px;
       margin: 5px;
       font-size: 16px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
     }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
     canvas {
       max-width: 700px;
       margin: 30px auto;
+      background: white;
+      border: 1px solid #ccc;
     }
+
     #soluciones {
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 15px;
+      color: #333;
     }
   </style>
 </head>
 <body>
-  <h2>Resolver y graficar ecuaciones</h2>
+  <h2>Graficador de Ecuaciones Lineales y Cuadráticas</h2>
 
   <p><strong>Selecciona el tipo de ecuación y completa los coeficientes:</strong></p>
 
   <div>
-    <label>Tipo de ecuación:</label>
+    <label for="tipoEcuacion">Tipo de ecuación:</label>
     <select id="tipoEcuacion" onchange="cambiarTipo()">
       <option value="lineal">Lineal (y = mx + b)</option>
       <option value="cuadratica">Cuadrática (y = ax² + bx + c)</option>
     </select>
   </div>
 
+  <!-- Coeficientes para ecuación lineal -->
   <div id="inputsLineal">
     <input type="number" id="m" placeholder="m (pendiente)">
     <input type="number" id="b" placeholder="b (intersección)">
   </div>
 
-  <div id="inputsCuadratica" style="display:none;">
+  <!-- Coeficientes para ecuación cuadrática -->
+  <div id="inputsCuadratica" style="display: none;">
     <input type="number" id="a" placeholder="a">
     <input type="number" id="b2" placeholder="b">
     <input type="number" id="c" placeholder="c">
@@ -52,108 +78,21 @@
 
   <br>
   <button onclick="graficar()">Graficar</button>
-  <p id="soluciones"></p>
 
-  <canvas id="grafico"></canvas>
+  <p id="soluciones"></p>
+  <canvas id="grafico" width="700" height="400"></canvas>
 
   <script>
-    let chart; // para almacenar la instancia de la gráfica
+    let chart; // instancia de Chart.js
 
-    const cambiarTipo = () => {
+    function cambiarTipo() {
       const tipo = document.getElementById('tipoEcuacion').value;
       document.getElementById('inputsLineal').style.display = tipo === 'lineal' ? 'block' : 'none';
       document.getElementById('inputsCuadratica').style.display = tipo === 'cuadratica' ? 'block' : 'none';
       document.getElementById('soluciones').textContent = '';
-    };
+    }
 
-    const graficar = () => {
+    function graficar() {
       const tipo = document.getElementById('tipoEcuacion').value;
-      const xValues = Array.from({length: 41}, (_, i) => i - 20);
-      let yValues = [];
-      let solucionTexto = '';
-      let minY = Infinity, maxY = -Infinity;
+      const xValues = Array.from({ length: 41 }, (_, i) => i_
 
-      if (tipo === 'lineal') {
-        const m = parseFloat(document.getElementById('m').value);
-        const b = parseFloat(document.getElementById('b').value);
-
-        if (isNaN(m) || isNaN(b)) {
-          alert("Por favor, ingresa todos los coeficientes.");
-          return;
-        }
-
-        yValues = xValues.map(x => m * x + b);
-        const xSol = -b / m;
-        solucionTexto = m !== 0 ? `Raíz (cuando y = 0): x = ${xSol.toFixed(2)}` : "La recta es horizontal, no tiene raíz.";
-      } else {
-        const a = parseFloat(document.getElementById('a').value);
-        const b = parseFloat(document.getElementById('b2').value);
-        const c = parseFloat(document.getElementById('c').value);
-
-        if (isNaN(a) || isNaN(b) || isNaN(c)) {
-          alert("Por favor, ingresa todos los coeficientes.");
-          return;
-        }
-
-        yValues = xValues.map(x => a * x * x + b * x + c);
-        const discriminante = b * b - 4 * a * c;
-
-        if (discriminante > 0) {
-          const x1 = (-b + Math.sqrt(discriminante)) / (2 * a);
-          const x2 = (-b - Math.sqrt(discriminante)) / (2 * a);
-          solucionTexto = `Raíces reales: x₁ = ${x1.toFixed(2)}, x₂ = ${x2.toFixed(2)}`;
-        } else if (discriminante === 0) {
-          const x0 = -b / (2 * a);
-          solucionTexto = `Raíz doble: x = ${x0.toFixed(2)}`;
-        } else {
-          solucionTexto = "No hay raíces reales (discriminante < 0)";
-        }
-      }
-
-      minY = Math.min(...yValues);
-      maxY = Math.max(...yValues);
-
-      document.getElementById('soluciones').textContent = `${solucionTexto} | Dominio: [-20, 20] | Rango aprox.: [${minY.toFixed(2)}, ${maxY.toFixed(2)}]`;
-
-      // Eliminar gráfico anterior
-      if (chart) chart.destroy();
-
-      const ctx = document.getElementById('grafico').getContext('2d');
-      chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: xValues,
-          datasets: [{
-            label: 'f(x)',
-            data: yValues,
-            borderColor: 'blue',
-            backgroundColor: 'rgba(0, 0, 255, 0.1)',
-            fill: true,
-            tension: 0.2
-          }]
-        },
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              title: { display: true, text: 'x' },
-              min: -20,
-              max: 20
-            },
-            y: {
-              title: { display: true, text: 'y' }
-            }
-          },
-          plugins: {
-            legend: { display: false },
-            title: {
-              display: true,
-              text: 'Gráfica de la ecuación'
-            }
-          }
-        }
-      });
-    };
-  </script>
-</body>
-</html>
