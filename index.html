@@ -6,7 +6,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
-    canvas { background: white; border: 1px solid #ccc; }
+    canvas { background: white; border: 1px solid #ccc; margin-top: 20px; }
+    #resultado { margin-top: 20px; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -25,7 +26,10 @@
   </div><br>
 
   <button onclick="graficar()">Graficar</button>
+
   <canvas id="grafico" width="700" height="400"></canvas>
+
+  <div id="resultado"></div>
 
   <script>
     const tipoSelect = document.getElementById('tipo');
@@ -64,10 +68,10 @@
         yValues.push(y);
       }
 
-      const rangoMin = Math.min(...yValues);
-      const rangoMax = Math.max(...yValues);
+      const rangoMin = Math.min(...yValues).toFixed(2);
+      const rangoMax = Math.max(...yValues).toFixed(2);
 
-      // Dominio (horizontal)
+      // Dominio: línea horizontal
       const dominio = {
         label: 'Dominio',
         data: [{x: -20, y: 0}, {x: 20, y: 0}],
@@ -77,17 +81,17 @@
         pointRadius: 0,
       };
 
-      // Rango (vertical, ejemplo usando punto medio)
+      // Rango: línea vertical
       const rango = {
         label: 'Rango',
-        data: [{x: 0, y: rangoMin}, {x: 0, y: rangoMax}],
+        data: [{x: 0, y: parseFloat(rangoMin)}, {x: 0, y: parseFloat(rangoMax)}],
         borderColor: 'green',
         fill: false,
         borderWidth: 1,
         pointRadius: 0,
       };
 
-      // Asíntota (solo si es cuadrática con a = 0, x = -c/b)
+      // Asíntota (sólo si a = 0 en cuadrática y b ≠ 0)
       let asintota = null;
       if (tipo === 'cuadratica' && a === 0 && b !== 0) {
         const xAsintota = -c / b;
@@ -132,11 +136,18 @@
           }
         }
       });
+
+      // Mostrar dominio y rango en palabras
+      const resultado = document.getElementById('resultado');
+      resultado.innerHTML = `
+        Dominio: x ∈ [ -20 , 20 ]<br>
+        Rango: y ∈ [ ${rangoMin} , ${rangoMax} ]
+      `;
     }
 
-    // Graficar por defecto
-    graficar();
+    graficar(); // Ejecutar al cargar
   </script>
 
 </body>
 </html>
+
